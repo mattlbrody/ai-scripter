@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Authentication Fix</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Testing Authentication Fix</h1>
+  <div id="results"></div>
+  
+  <script>
+    const supabaseUrl = 'https://lqsbxkgtkmroqenbmzrt.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxc2J4a2d0a21yb3FlbmJtenJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MDQ2MDIsImV4cCI6MjA3MTM4MDYwMn0.qb8FBCTnCPJjLbNBAp-h2fzjViyVMA_aExLvEB2QDrU';
+    
+    const { createClient } = supabase;
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+    
+    async function testAuth() {
+      const results = document.getElementById('results');
+      
+      // Test 1: Get session
+      const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+      
+      if (sessionError) {
+        results.innerHTML += '<p style="color:red">❌ Session Error: ' + sessionError.message + '</p>';
+        return;
+      }
+      
+      if (!session) {
+        results.innerHTML += '<p style="color:orange">⚠️ No session - user not logged in. Please log in through the app first.</p>';
+        return;
+      }
+      
+      results.innerHTML += '<p style="color:green">✅ Session found for: ' + session.user.email + '</p>';
+      
+      // Test 2: Try to read memberships
+      const { data: membership, error: membershipError } = await supabaseClient
+        .from('memberships')
+        .select('org_id, role')
+        .eq('user_id', session.user.id)
+        .single();
+      
+      if (membershipError) {
+        results.innerHTML += '<p style="color:red">❌ Membership Error: ' + membershipError.message + '</p>';
+        
+        if (membershipError.code === '42501') {
+          results.innerHTML += '<p style="color:orange">⚠️ RLS Policy Issue: Run fix-rls-policies.sql in Supabase SQL editor</p>';
+        }
+        return;
+      }
+      
+      results.innerHTML += '<p style="color:green">✅ Membership found: ' + JSON.stringify(membership) + '</p>';
+      
+      // Test 3: Try to read from a table
+      const { data: testData, error: testError } = await supabaseClient
+        .from('intents')
+        .select('id, label')
+        .eq('org_id', membership.org_id)
+        .limit(3);
+      
+      if (testError) {
+        results.innerHTML += '<p style="color:red">❌ Query Error: ' + testError.message + '</p>';
+        return;
+      }
+      
+      results.innerHTML += '<p style="color:green">✅ Query successful, found ' + (testData?.length || 0) + ' intents</p>';
+      
+      results.innerHTML += '<hr><p style="color:green"><strong>✅ All tests passed! Authentication is working correctly.</strong></p>';
+    }
+    
+    // Run test on load
+    testAuth();
+  </script>
+</body>
+</html>

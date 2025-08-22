@@ -1,0 +1,25 @@
+{
+  "name": "ai-sales-manager",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "extension",
+    "admin-ui",
+    "sidecar-ui"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:admin\" \"npm run dev:sidecar\"",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:admin": "npm run dev --workspace=admin-ui",
+    "dev:sidecar": "npm run dev --workspace=sidecar-ui",
+    "dev:extension": "npm run dev --workspace=extension",
+    "build": "npm run build --workspaces",
+    "db:migrate": "npm run migrate --workspace=database",
+    "db:seed": "npm run seed --workspace=database"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  }
+}
