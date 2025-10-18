@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Upload Functionality</title>
+    <script>
+        // Test the upload functionality directly
+        async function testUpload() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Testing upload functionality...</p>';
+            
+            try {
+                // Test 1: Check if Supabase is configured
+                const supabaseUrl = 'YOUR_SUPABASE_URL'; // Replace with actual URL
+                const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'; // Replace with actual key
+                
+                if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('YOUR_')) {
+                    results.innerHTML += '<p style="color: red;">❌ Supabase credentials not configured</p>';
+                    results.innerHTML += '<p>Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in admin-ui/.env file</p>';
+                    return;
+                }
+                
+                results.innerHTML += '<p style="color: green;">✅ Supabase credentials found</p>';
+                
+                // Test 2: Check storage bucket
+                const response = await fetch(`${supabaseUrl}/storage/v1/bucket/calls`, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`
+                    }
+                });
+                
+                if (response.status === 404) {
+                    results.innerHTML += '<p style="color: red;">❌ Storage bucket "calls" not found</p>';
+                    results.innerHTML += '<p><strong>To fix:</strong></p>';
+                    results.innerHTML += '<ol>';
+                    results.innerHTML += '<li>Go to your Supabase dashboard</li>';
+                    results.innerHTML += '<li>Navigate to Storage section</li>';
+                    results.innerHTML += '<li>Click "New bucket"</li>';
+                    results.innerHTML += '<li>Name it "calls"</li>';
+                    results.innerHTML += '<li>Set appropriate permissions (public or RLS)</li>';
+                    results.innerHTML += '</ol>';
+                } else if (response.ok) {
+                    results.innerHTML += '<p style="color: green;">✅ Storage bucket "calls" exists</p>';
+                } else {
+                    results.innerHTML += '<p style="color: orange;">⚠️ Could not verify storage bucket (status: ' + response.status + ')</p>';
+                }
+                
+            } catch (error) {
+                results.innerHTML += '<p style="color: red;">Error: ' + error.message + '</p>';
+            }
+        }
+        
+        // Run test on page load
+        window.onload = testUpload;
+    </script>
+</head>
+<body style="font-family: Arial, sans-serif; padding: 20px;">
+    <h1>Upload Functionality Test</h1>
+    <div id="results"></div>
+    
+    <hr style="margin: 30px 0;">
+    
+    <h2>Manual Testing Steps:</h2>
+    <ol>
+        <li>Open the admin UI at <a href="http://localhost:5174" target="_blank">http://localhost:5174</a></li>
+        <li>Log in with your credentials</li>
+        <li>Navigate to the "Calls" page</li>
+        <li>Try uploading an audio file</li>
+        <li>You should see one of these outcomes:
+            <ul>
+                <li>✅ Success message: "File uploaded successfully!"</li>
+                <li>❌ Error: "Storage bucket 'calls' not found" - Follow the instructions shown</li>
+                <li>❌ Error: "File size exceeds 50MB limit" - Choose a smaller file</li>
+                <li>❌ Error: "Invalid file format" - Use MP3, WAV, M4A, or OGG</li>
+            </ul>
+        </li>
+    </ol>
+    
+    <h2>Quick Fix for Storage Bucket:</h2>
+    <p>If you see the storage bucket error, here's the SQL to create it programmatically:</p>
+    <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px;">
+-- Run this in your Supabase SQL Editor:
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('calls', 'calls', true);
+    </pre>
+</body>
+</html>

@@ -1,12 +1,22 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { db } from '../services/database.js';
 import { logger } from '../utils/logger.js';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-);
+let supabase: SupabaseClient | null = null;
+
+function getSupabaseClient() {
+  if (!supabase) {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+      throw new Error('Supabase environment variables not set');
+    }
+    supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_KEY
+    );
+  }
+  return supabase;
+}
 
 export interface AuthenticatedRequest extends FastifyRequest {
   user?: {
@@ -30,7 +40,7 @@ export async function authenticate(
 
     const token = authHeader.substring(7);
     
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await getSupabaseClient().auth.getUser(token);
     
     if (error || !user) {
       return reply.status(401).send({ error: 'Invalid token' });

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Supabase Query</title>
+</head>
+<body>
+  <h1>Testing Supabase Calls Query</h1>
+  <button onclick="testQuery()">Test Query</button>
+  <pre id="result"></pre>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+    
+    const supabase = createClient(
+      'https://lqsbxkgtkmroqenbmzrt.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxc2J4a2d0a21yb3FlbmJtenJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzOTY0MDMsImV4cCI6MjA0OTk3MjQwM30.HWbKNy9aTe7MKSUngEOCdDs5LQQoaB_gNxMHKf8BQKQ'
+    );
+
+    window.testQuery = async function() {
+      const resultEl = document.getElementById('result');
+      
+      try {
+        // Get session
+        const { data: { session } } = await supabase.auth.getSession();
+        resultEl.textContent = 'Session: ' + JSON.stringify(session?.user?.email || 'No session', null, 2) + '\n\n';
+        
+        // Query calls directly
+        const { data: calls, error: callsError } = await supabase
+          .from('calls')
+          .select('id, status, duration_seconds, created_at')
+          .order('created_at', { ascending: false })
+          .limit(5);
+        
+        if (callsError) {
+          resultEl.textContent += 'Calls Error: ' + JSON.stringify(callsError, null, 2) + '\n\n';
+        } else {
+          resultEl.textContent += 'Calls Found: ' + calls.length + '\n';
+          resultEl.textContent += JSON.stringify(calls, null, 2);
+        }
+        
+      } catch (err) {
+        resultEl.textContent = 'Error: ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>

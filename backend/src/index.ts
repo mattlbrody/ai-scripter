@@ -54,14 +54,14 @@ async function start() {
       credentials: true
     });
 
-    await app.register(websocket);
+    // await app.register(websocket);
 
     app.setErrorHandler(errorHandler);
 
     await app.register(apiRoutes, { prefix: '/api' });
 
-    const wsServer = new WebSocketServer(app);
-    await wsServer.initialize();
+    // const wsServer = new WebSocketServer(app);
+    // await wsServer.initialize();
 
     const port = parseInt(process.env.PORT || '3000');
     const host = process.env.HOST || '0.0.0.0';

@@ -6,6 +6,7 @@ import { DashboardLayout } from './layouts/DashboardLayout';
 import { LoginPage } from './pages/Login';
 import { DashboardPage } from './pages/Dashboard';
 import { CallsPage } from './pages/Calls';
+import { CallTranscriptPage } from './pages/CallTranscript';
 import { ResponsesPage } from './pages/Responses';
 import { ReviewQueuePage } from './pages/ReviewQueue';
 import { IntentsPage } from './pages/Intents';
@@ -40,6 +41,7 @@ function AppRoutes() {
         }>
           <Route index element={<DashboardPage />} />
           <Route path="calls" element={<CallsPage />} />
+          <Route path="calls/:id" element={<CallTranscriptPage />} />
           <Route path="responses" element={<ResponsesPage />} />
           <Route path="review" element={<ReviewQueuePage />} />
           <Route path="intents" element={<IntentsPage />} />
